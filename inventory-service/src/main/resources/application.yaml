@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: inventory-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/inventorydb
+    username: postgres
+    password: hung123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    # ===== CONSUMER =====
+    consumer:
+      group-id: inventory-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false           # nên tắt auto-commit, để Spring quản lý
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # Đổi sang Jackson 3 deserializer (Spring Kafka 4.x / Spring Boot 4.x)
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.example.commonevents"
+        spring.json.value.default.type: "com.example.commonevents.OrderCreatedEvent"
+        spring.json.use.type.headers: false
+
+    # ===== PRODUCER (nếu inventory-service có gửi event) =====
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+
+    # ===== LISTENER =====
+    listener:
+      ack-mode: record
+      missing-topics-fatal: false
+
+  # (Tuỳ chọn) Cấu hình Jackson 3 cho HTTP response
+
+
+server:
+  port: 8083
+
+logging:
+  level:
+    com.example.inventoryservice: DEBUG      # đổi từ "inventory" sang đúng package
+    org.springframework.kafka: INFO
+    org.apache.kafka: WARN

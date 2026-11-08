@@ -1,0 +1,5 @@
+rootProject.name = 'Session12'
+include 'common-events'
+include 'order-service'
+include 'email-service'
+include 'inventory-service'
